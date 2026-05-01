@@ -1,0 +1,36 @@
+# docker-compose.yml (in project root)
+version: "3.9"
+
+services:
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - BEDROCK_MODEL_ID=anthropic.claude-haiku-20240307-v1:0
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app   # live reload during development
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: scan_to_safety
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+volumes:
+  postgres_data:
